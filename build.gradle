@@ -1,0 +1,166 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+    }
+}
+
+// apply Gradle plugins
+plugins {
+    id 'java'
+    id 'maven'
+    id 'eclipse'
+    id 'idea'
+    id 'checkstyle'
+}
+
+apply plugin: 'license'
+
+defaultTasks 'clean', 'licenseFormat', 'build'
+
+// Project information
+group = 'net.caseif.rosetta'
+version = '1.0-SNAPSHOT'
+
+// Extended project information
+ext.projectName = 'rosetta'
+ext.description = 'A localization API for Minecraft server plugins.'
+ext.inceptionYear = '2015'
+ext.packaging = 'jar'
+ext.author = 'Max Roncacé'
+ext.versionSuffix = version.contains('SNAPSHOT') ? (
+        (
+        System.getenv('GIT_COMMIT') ? ('-git('
+                + System.getenv('GIT_BRANCH')
+                .substring(System.getenv('GIT_BRANCH').split('/')[0].length() + 1) + '-'
+                + System.getenv('GIT_COMMIT').substring(0, 7) + ')') : ''
+        )
+        + (System.getenv('BUILD_NUMBER') ? '-jnks' + System.getenv('BUILD_NUMBER') : '')
+) : ''
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+configurations {
+    deployerJars
+}
+
+// Project repositories
+repositories {
+    maven { url 'http://hub.spigotmc.org/nexus/content/groups/public/' }
+
+    mavenCentral()
+}
+
+// Project dependencies
+dependencies {
+    compile 'org.bukkit:bukkit:1.8.8-R0.1-SNAPSHOT'
+
+    deployerJars 'org.apache.maven.wagon:wagon-ssh:2.9'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    from 'LICENSE'
+}
+
+// License header formatting
+license {
+    header file('LICENSE')
+    excludes([
+            '**/*.MD',
+            '**/*.properties',
+            '**/*.yml'
+    ])
+    sourceSets = project.sourceSets
+    ignoreFailures false
+    strictCheck true
+    mapping {
+        java = 'SLASHSTAR_STYLE'
+    }
+}
+
+// check code style
+checkstyle {
+    configProperties = [
+            'name'        : project.name,
+            'year'        : project.inceptionYear
+    ]
+    configFile = file('etc/checkstyle.xml')
+}
+
+tasks.withType(Checkstyle){
+    exclude '**/*.properties'
+    exclude '**/*.yml'
+}
+
+jar.manifest.mainAttributes(
+        'Created-By': System.properties['java.vm.version'] + " (" + System.properties['java.vm.vendor'] + ")",
+        'Specification-Title': name,
+        'Specification-Version': version + versionSuffix,
+        'Specitication-Vendor': author
+)
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.java
+    from sourceSets.main.resources
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+    classifier = 'javadoc'
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives javadocJar
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        setUniqueVersion(true)
+        configuration = configurations.deployerJars
+        if (project.hasProperty('mavenRepo')) {
+            repository(url: project.property('mavenRepo')) {
+                authentication(userName: project.property('mavenUser'), password: project.property('mavenPass'))
+            }
+        }
+
+        pom {
+            groupId = project.group
+            version = project.version
+            artifactId = project.ext.projectName
+            project {
+                packaging 'jar'
+                description project.ext.description
+                url 'http://github.com/caseif/Rosetta'
+
+                scm {
+                    url 'https://github.com/caseif/Rosetta'
+                    connection 'scm:git:git://github.com/caseif/Rosetta.git'
+                    developerConnection 'scm:git:git@github.com:caseif/Rosetta.git'
+                }
+
+                licenses {
+                    license {
+                        name 'BSD 3-Clause'
+                        url 'http://opensource.org/licenses/BSD-3-clause'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.4'
+}

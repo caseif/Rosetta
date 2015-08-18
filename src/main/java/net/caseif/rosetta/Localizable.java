@@ -28,7 +28,6 @@
  */
 package net.caseif.rosetta;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -53,6 +52,7 @@ public class Localizable {
     private final String key;
 
     private String[] replacements;
+    private String prefix;
 
     Localizable(LocaleManager parent, String key, String... replacements) {
         this.parent = parent;
@@ -81,26 +81,6 @@ public class Localizable {
     }
 
     /**
-     * Returns the replacements for placeholder sequences defined for this
-     * {@link Localizable}.
-     *
-     * <p>Placeholder sequences are defined as a percent symbol (%) followed by
-     * a number greater than or equal to 1. The first element of the replacement
-     * string array will replace any placeholder sequences matching {@code %1},
-     * the second, sequences matching {@code %2}, and so on.</p>
-     *
-     * <p><strong>Note:</strong> Mutating the array returned from this method
-     * will not impact this {@link Localizable}.</p>
-     *
-     * @return The replacements for placeholder sequences defined for this
-     *     {@link Localizable}
-     * @since 1.0
-     */
-    public String[] getReplacements() {
-        return Arrays.copyOf(replacements, replacements.length);
-    }
-
-    /**
      * Sets the replacements for placeholder sequences in this
      * {@link Localizable}.
      *
@@ -115,10 +95,26 @@ public class Localizable {
      *
      * @param replacements The replacement strings to set for this
      *     {@link Localizable}
+     * @return This {@link Localizable} object, for chaining)
      * @since 1.0
      */
-    public void setReplacements(String[] replacements) {
+    public Localizable withReplacements(String... replacements) {
         this.replacements = Arrays.copyOf(replacements, replacements.length);
+        return this;
+    }
+
+    /**
+     * Sets the prefix to prepend to this {@link Localizable} when it is
+     * localized.
+     *
+     * @param prefix The prefix to prepend to this {@link Localizable} when it
+     *     is localized.
+     * @return This {@link Localizable} object, for chaining
+     * @since 1.0
+     */
+    public Localizable withPrefix(String prefix) {
+        this.prefix = prefix;
+        return this;
     }
 
     /**
@@ -150,7 +146,7 @@ public class Localizable {
                 for (int i = 0; i < fallbacks.length; i++) { // replace placeholder sequences
                     message = message.replaceAll("%" + (i + 1), replacements[i]);
                 }
-                return message;
+                return (prefix != null ? prefix : "") + message;
             }
         }
         if (!recursive) { // only inject alternatives the method is not called recursively and the first choice fails
@@ -235,54 +231,7 @@ public class Localizable {
      * @since 1.0
      */
     public void sendTo(Player player, String... fallbacks) {
-        sendTo(player, (String) null, fallbacks);
-    }
-
-    /**
-     * Sends this {@link Localizable} to the given {@link Player} in their
-     * respective locale with the given prefix.
-     *
-     * <p>It is unnecessary to include alternate dialects of a locale as
-     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
-     * are included by default by the library.</p>
-     *
-     * @param player The {@link Player} to send this {@link Localizable}
-     *     to
-     * @param prefix The prefix to prepend to the localized message before
-     *     sending it to the player
-     * @param fallbacks Locales to fall back upon if this {@link Localizable}
-     *     is not available in the player's locale (the parent
-     *     {@link LocaleManager}'s default locale will be used if all fallbacks
-     *     are exhausted, and if this is unavailable, the value of
-     *     {@link Localizable#getKey()} will be used instead)
-     * @since 1.0
-     */
-    public void sendTo(Player player, String prefix, String... fallbacks) {
-        prefix = prefix == null ? "" : prefix;
-        player.sendMessage(prefix + localizeFor(player, fallbacks));
-    }
-
-    /**
-     * Sends this {@link Localizable} to the given {@link Player} in their
-     * respective locale with the given {@link ChatColor}.
-     *
-     * <p>It is unnecessary to include alternate dialects of a locale as
-     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
-     * are included by default by the library.</p>
-     *
-     * @param player The {@link Player} to send this {@link Localizable}
-     *     to
-     * @param prefix The {@link ChatColor} to prepend to the localized message
-     *     before sending it to the player
-     * @param fallbacks Locales to fall back upon if this {@link Localizable}
-     *     is not available in the player's locale (the parent
-     *     {@link LocaleManager}'s default locale will be used if all fallbacks
-     *     are exhausted, and if this is unavailable, the value of
-     *     {@link Localizable#getKey()} will be used instead)
-     * @since 1.0
-     */
-    public void sendTo(Player player, ChatColor prefix, String... fallbacks) {
-        sendTo(player, prefix.toString(), fallbacks);
+        player.sendMessage(localizeFor(player, fallbacks));
     }
 
 }

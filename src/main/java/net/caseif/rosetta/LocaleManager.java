@@ -52,7 +52,7 @@ import java.util.zip.ZipInputStream;
  * Provides localization support for a particular {@link Plugin}.
  *
  * <p>Locales are loaded as <code>.properties</code> files from the
- * {@link /lang} directory of the archive of the plugin owning this
+ * {@code /lang} directory of the archive of the plugin owning this
  * {@link LocaleManager}.</p>
  *
  * @author Max Roncacé

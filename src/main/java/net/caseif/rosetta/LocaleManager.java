@@ -28,7 +28,14 @@
  */
 package net.caseif.rosetta;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.logging.Logger;
 
 /**
  * Provides localization support for a particular {@link Plugin}.
@@ -105,6 +112,87 @@ public class LocaleManager {
      */
     public Localizable getLocalizable(String key, String... replacements) {
         return new Localizable(this, key, replacements);
+    }
+
+    String getLocale(Player player) {
+        if (NmsHelper.hasSupport()) {
+            try {
+                return NmsHelper.getLocale(player);
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                ex.printStackTrace();
+                Logger.getLogger("Rosetta").warning("Could not get locale of player " + player.getName());
+            }
+        }
+        return getDefaultLocale();
+    }
+
+    private static class NmsHelper {
+
+        private static final boolean SUPPORT;
+
+        private static final String PACKAGE_VERSION;
+
+        private static final Method CRAFTPLAYER_GETHANDLE;
+
+        private static final Field ENTITY_PLAYER_LOCALE;
+        private static final Field LOCALE_LANGUAGE_WRAPPED_STRING;
+
+        static {
+            String[] array = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
+            PACKAGE_VERSION = array.length == 4 ? array[3] + "." : "";
+
+            Method craftPlayer_getHandle = null;
+            Field entityPlayer_locale = null;
+            Field localeLanguage_wrappedString = null;
+            try {
+                craftPlayer_getHandle = getCraftClass("entity.CraftPlayer").getMethod("getHandle");
+
+                entityPlayer_locale = getNmsClass("EntityPlayer").getDeclaredField("locale");
+                entityPlayer_locale.setAccessible(true);
+                if (entityPlayer_locale.getType().getSimpleName().equals("LocaleLanguage")) {
+                    // On versions prior to 1.6, the locale is stored as a LocaleLanguage object.
+                    // The actual locale string is wrapped within it.
+                    // On 1.5, it's stored in field "e".
+                    // On 1.3 and 1.4, it's stored in field "d".
+                    try { // try for 1.5
+                        localeLanguage_wrappedString = entityPlayer_locale.getType().getDeclaredField("e");
+                    } catch (NoSuchFieldException ex) { // we're pre-1.5
+                        localeLanguage_wrappedString = entityPlayer_locale.getType().getDeclaredField("d");
+                    }
+                }
+            } catch (ClassNotFoundException | NoSuchFieldException | NoSuchMethodException ex) {
+                ex.printStackTrace();
+                Logger.getLogger("Rosetta").severe("Cannot initialize NMS components - per-player localization "
+                        + "disabled");
+            }
+            CRAFTPLAYER_GETHANDLE = craftPlayer_getHandle;
+            ENTITY_PLAYER_LOCALE = entityPlayer_locale;
+            LOCALE_LANGUAGE_WRAPPED_STRING = localeLanguage_wrappedString;
+            SUPPORT = CRAFTPLAYER_GETHANDLE != null;
+        }
+
+        private static boolean hasSupport() {
+            return SUPPORT;
+        }
+
+        private static String getLocale(Player player) throws IllegalAccessException, InvocationTargetException {
+            Object entityPlayer = CRAFTPLAYER_GETHANDLE.invoke(player);
+            Object locale = ENTITY_PLAYER_LOCALE.get(entityPlayer);
+            if (LOCALE_LANGUAGE_WRAPPED_STRING != null) {
+                return (String) LOCALE_LANGUAGE_WRAPPED_STRING.get(locale);
+            } else {
+                return (String) locale;
+            }
+        }
+
+        private static Class<?> getCraftClass(String className) throws ClassNotFoundException {
+            return Class.forName("org.bukkit.craftbukkit." + PACKAGE_VERSION + className);
+        }
+
+        private static Class<?> getNmsClass(String className) throws ClassNotFoundException {
+            return Class.forName("net.minecraft.server." + PACKAGE_VERSION + className);
+        }
+
     }
 
 }

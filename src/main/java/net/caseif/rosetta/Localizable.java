@@ -79,6 +79,19 @@ public class Localizable {
     }
 
     /**
+     * Localizes this {@link Localizable} in the given locale.
+     *
+     * @param locale The locale to localize this {@link Localizable} in
+     * @return A string representing the localized message. This should follow
+     *     the ISO 639-1 and ISO 3166-1 standards, respectively (e.g. en_US
+     *     or enUS).
+     * @since 1.0
+     */
+    public String localizeIn(String locale) {
+        return null; //TODO
+    }
+
+    /**
      * Localizes this {@link Localizable} in the owning {@link LocaleManager}'s
      * default locale.
      *
@@ -90,20 +103,6 @@ public class Localizable {
     }
 
     /**
-     * Localizes this {@link Localizable} in the given locale.
-     *
-     * @param locale The locale to localize this {@link Localizable} in
-     * @return A string representing the localized message. This should follow
-     *     the ISO 639-1 and ISO 3166-1 standards, respectively (e.g. en_US
-     *     or enUS).
-     * @since 1.0
-     */
-    public String localizeIn(String locale) {
-        //TODO
-        return null;
-    }
-
-    /**
      * Localizes this {@link Localizable} in the given {@link Player}'s locale.
      *
      * @param player The {@link Player} to localize this {@link Localizable} for
@@ -111,8 +110,7 @@ public class Localizable {
      * @since 1.0
      */
     public String localizeFor(Player player) {
-        //TODO
-        return null;
+        return localizeIn(getParent().getLocale(player));
     }
 
     /**
@@ -124,12 +122,7 @@ public class Localizable {
      * @since 1.0
      */
     public void sendTo(Player player) {
-        //TODO
-    }
-
-    private String getLocale(Player player) {
-        //TODO
-        return null;
+        player.sendMessage(localizeFor(player));
     }
 
 }

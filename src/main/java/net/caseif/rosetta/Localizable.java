@@ -135,7 +135,11 @@ public class Localizable {
         if (getParent().configs.containsKey(locale)) { // check if the locale is defined
             Properties props = getParent().configs.get(locale);
             if (props.containsKey(getKey())) { // check if the message is defined in the locale
-                return (String) props.get(getKey()); // yay, it worked
+                String message = (String) props.get(getKey()); // yay, it worked
+                for (int i = 0; i < fallbacks.length; i++) { // replace placeholder sequences
+                    message = message.replaceAll("%" + (i + 1), replacements[i]);
+                }
+                return message;
             }
         }
         if (fallbacks.length > 0) { // still some fallbacks to use

@@ -28,6 +28,7 @@
  */
 package net.caseif.rosetta;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -234,7 +235,54 @@ public class Localizable {
      * @since 1.0
      */
     public void sendTo(Player player, String... fallbacks) {
-        player.sendMessage(localizeFor(player, fallbacks));
+        sendTo(player, (String) null, fallbacks);
+    }
+
+    /**
+     * Sends this {@link Localizable} to the given {@link Player} in their
+     * respective locale with the given prefix.
+     *
+     * <p>It is unnecessary to include alternate dialects of a locale as
+     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
+     * are included by default by the library.</p>
+     *
+     * @param player The {@link Player} to send this {@link Localizable}
+     *     to
+     * @param prefix The prefix to prepend to the localized message before
+     *     sending it to the player
+     * @param fallbacks Locales to fall back upon if this {@link Localizable}
+     *     is not available in the player's locale (the parent
+     *     {@link LocaleManager}'s default locale will be used if all fallbacks
+     *     are exhausted, and if this is unavailable, the value of
+     *     {@link Localizable#getKey()} will be used instead)
+     * @since 1.0
+     */
+    public void sendTo(Player player, String prefix, String... fallbacks) {
+        prefix = prefix == null ? "" : prefix;
+        player.sendMessage(prefix + localizeFor(player, fallbacks));
+    }
+
+    /**
+     * Sends this {@link Localizable} to the given {@link Player} in their
+     * respective locale with the given {@link ChatColor}.
+     *
+     * <p>It is unnecessary to include alternate dialects of a locale as
+     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
+     * are included by default by the library.</p>
+     *
+     * @param player The {@link Player} to send this {@link Localizable}
+     *     to
+     * @param prefix The {@link ChatColor} to prepend to the localized message
+     *     before sending it to the player
+     * @param fallbacks Locales to fall back upon if this {@link Localizable}
+     *     is not available in the player's locale (the parent
+     *     {@link LocaleManager}'s default locale will be used if all fallbacks
+     *     are exhausted, and if this is unavailable, the value of
+     *     {@link Localizable#getKey()} will be used instead)
+     * @since 1.0
+     */
+    public void sendTo(Player player, ChatColor prefix, String... fallbacks) {
+        sendTo(player, prefix.toString(), fallbacks);
     }
 
 }

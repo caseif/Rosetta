@@ -1,7 +1,7 @@
 /*
  * New BSD License (BSD-new)
  *
- * Copyright (c) 2015 Maxim Roncacé
+ * Copyright (c) 2015 Maxim RoncacÃ©
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import org.bukkit.entity.Player;
  * <p>In the event that a {@link Localizable} cannot be localized in the given
  * locale, it will output its internal key instead.</p>
  *
- * @author Max Roncacé
+ * @author Max RoncacÃ©
  * @version 1.0.0
  * @since 1.0
  */

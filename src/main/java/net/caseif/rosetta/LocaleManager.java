@@ -1,7 +1,7 @@
 /*
  * New BSD License (BSD-new)
  *
- * Copyright (c) 2015 Maxim Roncacé
+ * Copyright (c) 2015 Maxim RoncacÃ©
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.bukkit.plugin.Plugin;
  * <code>/locales</code> directory of the archive of the plugin owning this
  * {@link LocaleManager}.</p>
  *
- * @author Max Roncacé
+ * @author Max RoncacÃ©
  * @version 1.0.0
  * @since 1.0
  */

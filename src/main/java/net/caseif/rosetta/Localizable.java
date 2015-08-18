@@ -31,6 +31,7 @@ package net.caseif.rosetta;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -122,16 +123,25 @@ public class Localizable {
     /**
      * Localizes this {@link Localizable} in the given locale.
      *
+     * <p>It is unnecessary to include alternate dialects of a locale as
+     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
+     * are included by default by the library.</p>
+     *
      * @param locale The locale to localize this {@link Localizable} in
      * @param fallbacks Locales to fall back upon if this {@link Localizable}
      *     is not available in the player's locale (the parent
      *     {@link LocaleManager}'s default locale will be used if all fallbacks
      *     are exhausted, and if this is unavailable, the value of
      *     {@link Localizable#getKey()} will be used instead)
-     * @return A string representing the localized message
+     * @return A string representing the localized message, or this
+     *     {@link Localizable}'s internal key if no localizations are available
      * @since 1.0
      */
     public String localizeIn(String locale, String... fallbacks) {
+        return localizeIn(locale, false, fallbacks);
+    }
+
+    private String localizeIn(String locale, boolean recursive, String... fallbacks) {
         if (getParent().configs.containsKey(locale)) { // check if the locale is defined
             Properties props = getParent().configs.get(locale);
             if (props.containsKey(getKey())) { // check if the message is defined in the locale
@@ -142,12 +152,33 @@ public class Localizable {
                 return message;
             }
         }
+        if (!recursive) { // only inject alternatives the method is not called recursively and the first choice fails
+            List<String> fbList = Arrays.asList(fallbacks);
+            for (int i = 0; i < fbList.size(); i++) {
+                String fb = fbList.get(i);
+                if (LocaleManager.ALTERNATIVES.containsKey(fb)) {
+                    for (String alt : LocaleManager.ALTERNATIVES.get(fb)) {
+                        if (!fbList.contains(alt)) { // check if the alternate dialect is already in the list
+                            fbList.add(i + 1, alt); // inject alternate dialects after the current fallback entry
+                            ++i; // increment the counter past the new entry
+                        }
+                    }
+                }
+            }
+            if (LocaleManager.ALTERNATIVES.containsKey(locale)) {
+                for (String alt : LocaleManager.ALTERNATIVES.get(locale)) {
+                    if (!fbList.contains(alt)) { // check if the alternate dialect is already in the list
+                        fbList.add(0, alt); // inject alternate dialects at the start of the list
+                    }
+                }
+            }
+        }
         if (fallbacks.length > 0) { // still some fallbacks to use
             String[] newFallbacks = new String[fallbacks.length - 1]; // reconstruct the fallback array
             System.arraycopy(fallbacks, 1, newFallbacks, 0, newFallbacks.length); // drop the first element
-            return localizeIn(fallbacks[0], newFallbacks); // try the next fallback
+            return localizeIn(fallbacks[0], true, newFallbacks); // try the next fallback
         } else if (!locale.equals(getParent().getDefaultLocale())) {
-            return localizeIn(getParent().getDefaultLocale()); // try the default locale
+            return localizeIn(getParent().getDefaultLocale(), true); // try the default locale
         } else {
             return getKey(); // last resort if no locale is available
         }
@@ -167,13 +198,18 @@ public class Localizable {
     /**
      * Localizes this {@link Localizable} in the given {@link Player}'s locale.
      *
+     * <p>It is unnecessary to include alternate dialects of a locale as
+     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
+     * are included by default by the library.</p>
+     *
      * @param player The {@link Player} to localize this {@link Localizable} for
      * @param fallbacks Locales to fall back upon if this {@link Localizable}
      *     is not available in the player's locale (the parent
      *     {@link LocaleManager}'s default locale will be used if all fallbacks
      *     are exhausted, and if this is unavailable, the value of
      *     {@link Localizable#getKey()} will be used instead)
-     * @return A string representing the localized message
+     * @return A string representing the localized message, or this
+     *     {@link Localizable}'s internal key if no localizations are available
      * @since 1.0
      */
     public String localizeFor(Player player, String... fallbacks) {
@@ -183,6 +219,10 @@ public class Localizable {
     /**
      * Sends this {@link Localizable} to the given {@link Player} in their
      * respective locale.
+     *
+     * <p>It is unnecessary to include alternate dialects of a locale as
+     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
+     * are included by default by the library.</p>
      *
      * @param player The {@link Player} to send this {@link Localizable}
      *     to

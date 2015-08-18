@@ -41,7 +41,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.CodeSource;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -64,12 +66,43 @@ public class LocaleManager {
     private static final String DEFAULT_LOCALE = "en_US";
     private static final String LOCALE_FOLDER = "lang";
 
+    static final HashMap<String, List<String>> ALTERNATIVES = new HashMap<>();
+
     static final Logger LOGGER = Logger.getLogger("Rosetta");
 
     private final Plugin owner;
     private String defaultLocale = DEFAULT_LOCALE;
 
     HashMap<String, Properties> configs = new HashMap<>();
+
+    static {
+        // English dialects
+        ALTERNATIVES.put("en_AU", Arrays.asList("en_GB", "en_CA", "en_US"));
+        ALTERNATIVES.put("en_CA", Arrays.asList("en_GB", "en_AU", "en_US"));
+        ALTERNATIVES.put("en_GB", Arrays.asList("en_GB", "en_AU", "en_US"));
+        ALTERNATIVES.put("en_PT", Arrays.asList("en_US", "en_CA", "en_GB", "en_AU")); // idk
+        ALTERNATIVES.put("en_US", Arrays.asList("en_CA", "en_GB", "en_AU"));
+
+        // Spanish dialects (not sure how accurate this is, mostly guesswork)
+        ALTERNATIVES.put("es_AR", Arrays.asList("es_UY", "es_VE", "es_MX", "es_ES"));
+        ALTERNATIVES.put("es_ES", Arrays.asList("es_MX", "es_AR", "es_UY", "es_VE"));
+        ALTERNATIVES.put("es_MX", Arrays.asList("es_ES", "es_AR", "es_UY", "es_VE"));
+        ALTERNATIVES.put("es_UY", Arrays.asList("es_AR", "es_VE", "es_MX", "es_ES"));
+        ALTERNATIVES.put("es_VE", Arrays.asList("es_AR", "es_UY", "es_MX", "es_ES"));
+
+        // French dialects
+        ALTERNATIVES.put("fr_CA", Arrays.asList("fr_FR"));
+        ALTERNATIVES.put("fr_FR", Arrays.asList("fr_CA"));
+
+        // Norwegian dialects (not sure how accurate this is)
+        ALTERNATIVES.put("nb_NO", Arrays.asList("no_NO", "nn_NO"));
+        ALTERNATIVES.put("nn_NO", Arrays.asList("no_NO", "nb_NO"));
+        ALTERNATIVES.put("no_NO", Arrays.asList("nb_NO", "nn_NO"));
+
+        // Portugese dialects
+        ALTERNATIVES.put("pt_BR", Arrays.asList("pt_PT"));
+        ALTERNATIVES.put("pt_PT", Arrays.asList("pt_BR"));
+    }
 
     /**
      * Constructs a new {@link LocaleManager} owned by the given {@link Plugin}.

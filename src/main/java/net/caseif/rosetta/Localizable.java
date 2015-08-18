@@ -30,16 +30,16 @@ package net.caseif.rosetta;
 
 import org.bukkit.entity.Player;
 
-//TODO: class documentation probably needs some work
+import java.util.Arrays;
+import java.util.Properties;
+
 /**
  * Represents an object which has the potential to be localized in one of
  * multiple languages and returned as a string.
  *
- * <p>This may represent an ordered collection of strings and/or other
- * {@link Localizable}s.</p>
- *
- * <p>In the event that a {@link Localizable} cannot be localized in the given
- * locale, it will output its internal key instead.</p>
+ * <p>In the event that a {@link Localizable} cannot be localized with the given
+ * parameters or in its parent {@link LocaleManager}'s default locale, it will
+ * output its internal key instead.</p>
  *
  * @author Max Roncacé
  * @version 1.0.0
@@ -79,16 +79,74 @@ public class Localizable {
     }
 
     /**
+     * Returns the replacements for placeholder sequences defined for this
+     * {@link Localizable}.
+     *
+     * <p>Placeholder sequences are defined as a percent symbol (%) followed by
+     * a number greater than or equal to 1. The first element of the replacement
+     * string array will replace any placeholder sequences matching {@code %1},
+     * the second, sequences matching {@code %2}, and so on.</p>
+     *
+     * <p><strong>Note:</strong> Mutating the array returned from this method
+     * will not impact this {@link Localizable}.</p>
+     *
+     * @return The replacements for placeholder sequences defined for this
+     *     {@link Localizable}
+     * @since 1.0
+     */
+    public String[] getReplacements() {
+        return Arrays.copyOf(replacements, replacements.length);
+    }
+
+    /**
+     * Sets the replacements for placeholder sequences in this
+     * {@link Localizable}.
+     *
+     * <p>Placeholder sequences are defined as a percent symbol (%) followed by
+     * a number greater than or equal to 1. The first element of the replacement
+     * string array will replace any placeholder sequences matching {@code %1},
+     * the second, sequences matching {@code %2}, and so on.</p>
+     *
+     * <p><strong>Note:</strong> Mutating the values of the array passed as a
+     * parameter after calling this method will not impact this
+     * {@link Localizable}.</p>
+     *
+     * @param replacements The replacement strings to set for this
+     *     {@link Localizable}
+     * @since 1.0
+     */
+    public void setReplacements(String[] replacements) {
+        this.replacements = Arrays.copyOf(replacements, replacements.length);
+    }
+
+    /**
      * Localizes this {@link Localizable} in the given locale.
      *
      * @param locale The locale to localize this {@link Localizable} in
-     * @return A string representing the localized message. This should follow
-     *     the ISO 639-1 and ISO 3166-1 standards, respectively and separated by
-     *     an underscore (e.g. en_US).
+     * @param fallbacks Locales to fall back upon if this {@link Localizable}
+     *     is not available in the player's locale (the parent
+     *     {@link LocaleManager}'s default locale will be used if all fallbacks
+     *     are exhausted, and if this is unavailable, the value of
+     *     {@link Localizable#getKey()} will be used instead)
+     * @return A string representing the localized message
      * @since 1.0
      */
-    public String localizeIn(String locale) {
-        return null; //TODO
+    public String localizeIn(String locale, String... fallbacks) {
+        if (getParent().configs.containsKey(locale)) { // check if the locale is defined
+            Properties props = getParent().configs.get(locale);
+            if (props.containsKey(getKey())) { // check if the message is defined in the locale
+                return (String) props.get(getKey()); // yay, it worked
+            }
+        }
+        if (fallbacks.length > 0) { // still some fallbacks to use
+            String[] newFallbacks = new String[fallbacks.length - 1]; // reconstruct the fallback array
+            System.arraycopy(fallbacks, 1, newFallbacks, 0, newFallbacks.length); // drop the first element
+            return localizeIn(fallbacks[0], newFallbacks); // try the next fallback
+        } else if (!locale.equals(getParent().getDefaultLocale())) {
+            return localizeIn(getParent().getDefaultLocale()); // try the default locale
+        } else {
+            return getKey(); // last resort if no locale is available
+        }
     }
 
     /**
@@ -106,11 +164,16 @@ public class Localizable {
      * Localizes this {@link Localizable} in the given {@link Player}'s locale.
      *
      * @param player The {@link Player} to localize this {@link Localizable} for
+     * @param fallbacks Locales to fall back upon if this {@link Localizable}
+     *     is not available in the player's locale (the parent
+     *     {@link LocaleManager}'s default locale will be used if all fallbacks
+     *     are exhausted, and if this is unavailable, the value of
+     *     {@link Localizable#getKey()} will be used instead)
      * @return A string representing the localized message
      * @since 1.0
      */
-    public String localizeFor(Player player) {
-        return localizeIn(getParent().getLocale(player));
+    public String localizeFor(Player player, String... fallbacks) {
+        return localizeIn(getParent().getLocale(player), fallbacks);
     }
 
     /**
@@ -119,10 +182,15 @@ public class Localizable {
      *
      * @param player The {@link Player} to send this {@link Localizable}
      *     to
+     * @param fallbacks Locales to fall back upon if this {@link Localizable}
+     *     is not available in the player's locale (the parent
+     *     {@link LocaleManager}'s default locale will be used if all fallbacks
+     *     are exhausted, and if this is unavailable, the value of
+     *     {@link Localizable#getKey()} will be used instead)
      * @since 1.0
      */
-    public void sendTo(Player player) {
-        player.sendMessage(localizeFor(player));
+    public void sendTo(Player player, String... fallbacks) {
+        player.sendMessage(localizeFor(player, fallbacks));
     }
 
 }

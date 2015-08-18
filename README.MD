@@ -1,6 +1,6 @@
 # Rosetta
 
-Rosetta is a localization API for various Minecraft server mods.
+Rosetta is a localization API for Bukkit plugins.
 
 ### Usage
 

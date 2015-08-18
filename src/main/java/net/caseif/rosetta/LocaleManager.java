@@ -41,7 +41,22 @@ import org.bukkit.plugin.Plugin;
  * @version 1.0.0
  * @since 1.0
  */
-public interface LocaleManager {
+public class LocaleManager {
+
+    private static final String DEFAULT_LOCALE = "en_US";
+
+    private final Plugin owner;
+    private String defaultLocale = DEFAULT_LOCALE;
+
+    /**
+     * Constructs a new {@link LocaleManager} owned by the given {@link Plugin}.
+     *
+     * @param plugin The plugin owning the new {@link LocaleManager}.
+     * @since 1.0
+     */
+    public LocaleManager(Plugin plugin) {
+        this.owner = plugin;
+    }
 
     /**
      * Gets the plugin owning this {@link LocaleManager}.
@@ -49,18 +64,21 @@ public interface LocaleManager {
      * @return The plugin owning this {@link LocaleManager}
      * @since 1.0
      */
-    Plugin getOwningPlugin();
+    public Plugin getOwningPlugin() {
+        return owner;
+    }
 
     /**
      * Gets the default locale of this {@link LocaleManager}.
      *
      * @return A string representing the default locale. This should
      *     follow the {@code ISO 639-1} and {@code ISO 3166-1} standards,
-     *     respectively (e.g. {@code en_US} or {@code enUS}) and defaults to
-     *     {@code en_US}.
+     *     respectively (e.g. {@code en_US}) and defaults to {@code en_US}.
      * @since 1.0
      */
-    String getDefaultLocale();
+    public String getDefaultLocale() {
+        return defaultLocale;
+    }
 
     /**
      * Sets the default locale of this {@link LocaleManager}.
@@ -71,11 +89,13 @@ public interface LocaleManager {
      *     {@code en_US}.
      * @since 1.0
      */
-    void setDefaultLocale(String locale);
+    public void setDefaultLocale(String locale) {
+        this.defaultLocale = locale;
+    }
 
     /**
      * Gets the {@link Localizable} associated with the given key, using the
-     * given {@link CharSequence}s as replacements for placeholder sequences.
+     * given var-arg string array as replacements for placeholder sequences.
      *
      * @param key The key of the message to retrieve
      * @param replacements A var-args parameter representing replacements for
@@ -83,6 +103,8 @@ public interface LocaleManager {
      * @return The retrieved message as a {@link Localizable}
      * @since 1.0
      */
-    Localizable getLocalizable(String key, String... replacements);
+    public Localizable getLocalizable(String key, String... replacements) {
+        return new Localizable(this, key, replacements);
+    }
 
 }

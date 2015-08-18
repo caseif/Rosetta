@@ -45,7 +45,18 @@ import org.bukkit.entity.Player;
  * @version 1.0.0
  * @since 1.0
  */
-public interface Localizable {
+public class Localizable {
+
+    private final LocaleManager parent;
+    private final String key;
+
+    private String[] replacements;
+
+    Localizable(LocaleManager parent, String key, String... replacements) {
+        this.parent = parent;
+        this.key = key;
+        this.replacements = replacements;
+    }
 
     /**
      * Gets the parent {@link LocaleManager} for this {@link Localizable}.
@@ -53,7 +64,9 @@ public interface Localizable {
      * @return The parent {@link LocaleManager} for this {@link Localizable}.
      * @since 1.0
      */
-    LocaleManager getParent();
+    public LocaleManager getParent() {
+        return parent;
+    }
 
     /**
      * Gets the key associated with this {@link Localizable}'s message.
@@ -61,15 +74,20 @@ public interface Localizable {
      * @return The key associated with this {@link Localizable}'s message
      * @since 1.0
      */
-    String getKey();
+    public String getKey() {
+        return key;
+    }
 
     /**
-     * Localizes this {@link Localizable} in the server's default locale.
+     * Localizes this {@link Localizable} in the owning {@link LocaleManager}'s
+     * default locale.
      *
      * @return The appropriate localization for this {@link Localizable}.
      * @since 1.0
      */
-    String localize();
+    public String localize() {
+        return localizeIn(getParent().getDefaultLocale());
+    }
 
     /**
      * Localizes this {@link Localizable} in the given locale.
@@ -80,21 +98,10 @@ public interface Localizable {
      *     or enUS).
      * @since 1.0
      */
-    String localizeIn(String locale);
-
-    /**
-     * Localizes this {@link Localizable} in the given locale.
-     *
-     * @param locale The locale to localize this {@link Localizable} in
-     * @param fallbacks A varargs parameter signifying in order locales to fall
-     *     back to if the given locale is not available for this
-     *     {@link Localizable}
-     * @return A string representing the localized message. This should follow
-     *     the ISO 639-1 and ISO 3166-1 standards, respectively (e.g. en_US
-     *     or enUS).
-     * @since 1.0
-     */
-    String localizeIn(String locale, String... fallbacks);
+    public String localizeIn(String locale) {
+        //TODO
+        return null;
+    }
 
     /**
      * Localizes this {@link Localizable} in the given {@link Player}'s locale.
@@ -103,19 +110,10 @@ public interface Localizable {
      * @return A string representing the localized message
      * @since 1.0
      */
-    String localizeFor(Player player);
-
-    /**
-     * Localizes this {@link Localizable} in the given {@link Player}'s locale.
-     *
-     * @param player The {@link Player} to localize this {@link Localizable} for
-     * @param fallbacks A varargs parameter signifying in order locales to fall
-     *     back to if the {@link Player}'s locale is not available for this
-     *     {@link Localizable}
-     * @return A string representing the localized message
-     * @since 1.0
-     */
-    String localizeFor(Player player, String... fallbacks);
+    public String localizeFor(Player player) {
+        //TODO
+        return null;
+    }
 
     /**
      * Sends this {@link Localizable} to the given {@link Player} in their
@@ -125,18 +123,13 @@ public interface Localizable {
      *     to
      * @since 1.0
      */
-    void sendTo(Player player);
+    public void sendTo(Player player) {
+        //TODO
+    }
 
-    /**
-     * Sends this {@link Localizable} to the given {@link Player} in their
-     * respective locale.
-     *
-     * @param player The {@link Player} to send this {@link Localizable} to
-     * @param fallbacks A varargs parameter signifying in order locales to fall
-     *     back to if the {@link Player}'s locale is not available for this
-     *     {@link Localizable}
-     * @since 1.0
-     */
-    void sendTo(Player player, String... fallbacks);
+    private String getLocale(Player player) {
+        //TODO
+        return null;
+    }
 
 }

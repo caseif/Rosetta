@@ -27,7 +27,7 @@ version = '1.0.0-SNAPSHOT'
 
 // Extended project information
 ext.projectName = 'rosetta'
-ext.description = 'A localization API for Minecraft server plugins.'
+ext.description = 'A localization API for Bukkit plugins.'
 ext.inceptionYear = '2015'
 ext.packaging = 'jar'
 ext.author = 'Max Roncacé'

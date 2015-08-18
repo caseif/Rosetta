@@ -83,8 +83,8 @@ public class Localizable {
      *
      * @param locale The locale to localize this {@link Localizable} in
      * @return A string representing the localized message. This should follow
-     *     the ISO 639-1 and ISO 3166-1 standards, respectively (e.g. en_US
-     *     or enUS).
+     *     the ISO 639-1 and ISO 3166-1 standards, respectively and separated by
+     *     an underscore (e.g. en_US).
      * @since 1.0
      */
     public String localizeIn(String locale) {

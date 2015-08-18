@@ -32,16 +32,27 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.security.CodeSource;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Provides localization support for a particular {@link Plugin}.
  *
  * <p>Locales are loaded as <code>.properties</code> files from the
- * <code>/locales</code> directory of the archive of the plugin owning this
+ * {@link /lang} directory of the archive of the plugin owning this
  * {@link LocaleManager}.</p>
  *
  * @author Max Roncacé
@@ -51,9 +62,14 @@ import java.util.logging.Logger;
 public class LocaleManager {
 
     private static final String DEFAULT_LOCALE = "en_US";
+    private static final String LOCALE_FOLDER = "lang";
+
+    static final Logger LOGGER = Logger.getLogger("Rosetta");
 
     private final Plugin owner;
     private String defaultLocale = DEFAULT_LOCALE;
+
+    HashMap<String, Properties> configs = new HashMap<>();
 
     /**
      * Constructs a new {@link LocaleManager} owned by the given {@link Plugin}.
@@ -63,6 +79,84 @@ public class LocaleManager {
      */
     public LocaleManager(Plugin plugin) {
         this.owner = plugin;
+        loadCustomLocales();
+        loadShippedLocales();
+    }
+
+    private void loadCustomLocales() {
+        File dataFolder = getOwningPlugin().getDataFolder();
+        if (dataFolder.isDirectory()) {
+            File localeFolder = new File(dataFolder, LOCALE_FOLDER);
+            if (localeFolder.isDirectory()) {
+                File[] contents = localeFolder.listFiles();
+                if (contents != null) {
+                    for (File locale : contents) {
+                        if (!locale.isDirectory()) {
+                            try {
+                                loadLocale(locale.getName(), new FileInputStream(locale), false);
+                            } catch (IOException ex) {
+                                LOGGER.warning("Failed to load custom locale \"" + locale.getName() + "\" for plugin "
+                                        + getOwningPlugin() + " (" + ex.getClass().getName() + ")");
+                            }
+                        } else {
+                            LOGGER.warning("Found subfolder \"" + locale.getName() + "\" within locale folder \""
+                                    + LOCALE_FOLDER + "\" in data folder for plugin " + getOwningPlugin()
+                                    + " - not loading");
+                        }
+                    }
+                }
+            } else {
+                LOGGER.warning("Locale folder \"" + LOCALE_FOLDER + "\" in data folder for plugin " + getOwningPlugin()
+                        + " is not a directory - not loading custom locales");
+            }
+        }
+    }
+
+    private void loadShippedLocales() {
+        CodeSource cs = getOwningPlugin().getClass().getProtectionDomain().getCodeSource();
+        if (cs != null) {
+            try {
+                URL jar = cs.getLocation();
+                ZipInputStream zip = new ZipInputStream(jar.openStream());
+                ZipEntry entry;
+                while ((entry = zip.getNextEntry()) != null) {
+                    String entryName = entry.getName();
+                    if (entryName.startsWith(LOCALE_FOLDER + "/") && entryName.endsWith(".properties")) {
+                        String[] arr = entryName.split("/");
+                        String localeName = arr[arr.length - 1].replace("\\.properties", "");
+                        loadLocale(localeName, zip, true);
+                    }
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException("Failed to initialize LocaleManager for plugin " + getOwningPlugin()
+                        + " - Rosetta cannot continue!", ex);
+            }
+        } else {
+            throw new RuntimeException("Failed to load code source for plugin " + getOwningPlugin()
+                    + " - Rosetta cannot continue!");
+        }
+    }
+
+    private void loadLocale(String name, InputStream is, boolean printStackTrace) {
+        try {
+            Properties temp = new Properties();
+            temp.load(is);
+            Properties config;
+            if (configs.containsKey(name)) {
+                config = configs.get(name);
+                for (Map.Entry<Object, Object> e : temp.entrySet()) {
+                    config.put(e.getKey(), e.getValue());
+                }
+            } else {
+                config = temp;
+            }
+            configs.put(name, config);
+        } catch (IOException ex) {
+            if (printStackTrace) {
+                ex.printStackTrace();
+            }
+            LOGGER.warning("Failed to load locale " + name + " for plugin " + getOwningPlugin() + " - skipping");
+        }
     }
 
     /**
@@ -120,7 +214,7 @@ public class LocaleManager {
                 return NmsHelper.getLocale(player);
             } catch (IllegalAccessException | InvocationTargetException ex) {
                 ex.printStackTrace();
-                Logger.getLogger("Rosetta").warning("Could not get locale of player " + player.getName());
+                LOGGER.warning("Could not get locale of player " + player.getName());
             }
         }
         return getDefaultLocale();
@@ -162,7 +256,7 @@ public class LocaleManager {
                 }
             } catch (ClassNotFoundException | NoSuchFieldException | NoSuchMethodException ex) {
                 ex.printStackTrace();
-                Logger.getLogger("Rosetta").severe("Cannot initialize NMS components - per-player localization "
+                LOGGER.severe("Cannot initialize NMS components - per-player localization "
                         + "disabled");
             }
             CRAFTPLAYER_GETHANDLE = craftPlayer_getHandle;

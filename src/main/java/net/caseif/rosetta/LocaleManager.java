@@ -31,7 +31,7 @@ package net.caseif.rosetta;
 import org.bukkit.plugin.Plugin;
 
 /**
- * Provides localization support for a particular {@link Minigame}.
+ * Provides localization support for a particular {@link Plugin}.
  *
  * <p>Locales are loaded as <code>.properties</code> files from the
  * <code>/locales</code> directory of the archive of the plugin owning this

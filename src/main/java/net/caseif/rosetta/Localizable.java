@@ -28,6 +28,7 @@
  */
 package net.caseif.rosetta;
 
+import com.google.common.collect.Lists;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -150,7 +151,7 @@ public class Localizable {
             }
         }
         if (!recursive) { // only inject alternatives the method is not called recursively and the first choice fails
-            List<String> fbList = Arrays.asList(fallbacks);
+            List<String> fbList = Lists.newArrayList(fallbacks);
             for (int i = 0; i < fbList.size(); i++) {
                 String fb = fbList.get(i);
                 if (LocaleManager.ALTERNATIVES.containsKey(fb)) {
@@ -169,6 +170,8 @@ public class Localizable {
                     }
                 }
             }
+            fallbacks = new String[fbList.size()];
+            fbList.toArray(fallbacks);
         }
         if (fallbacks.length > 0) { // still some fallbacks to use
             String[] newFallbacks = new String[fallbacks.length - 1]; // reconstruct the fallback array

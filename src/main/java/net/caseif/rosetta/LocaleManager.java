@@ -120,27 +120,30 @@ public class LocaleManager {
         File dataFolder = getOwningPlugin().getDataFolder();
         if (dataFolder.isDirectory()) {
             File localeFolder = new File(dataFolder, LOCALE_FOLDER);
-            if (localeFolder.isDirectory()) {
-                File[] contents = localeFolder.listFiles();
-                if (contents != null) {
-                    for (File locale : contents) {
-                        if (!locale.isDirectory()) {
-                            try {
-                                loadLocale(locale.getName(), new FileInputStream(locale), false);
-                            } catch (IOException ex) {
-                                LOGGER.warning("Failed to load custom locale \"" + locale.getName() + "\" for plugin "
-                                        + getOwningPlugin() + " (" + ex.getClass().getName() + ")");
+            if (localeFolder.exists()) {
+                if (localeFolder.isDirectory()) {
+                    File[] contents = localeFolder.listFiles();
+                    if (contents != null) {
+                        for (File locale : contents) {
+                            if (!locale.isDirectory()) {
+                                try {
+                                    loadLocale(locale.getName(), new FileInputStream(locale), false);
+                                } catch (IOException ex) {
+                                    LOGGER.warning("Failed to load custom locale \"" + locale.getName()
+                                            + "\" for plugin " + getOwningPlugin() + " (" + ex.getClass().getName()
+                                            + ")");
+                                }
+                            } else {
+                                LOGGER.warning("Found subfolder \"" + locale.getName() + "\" within locale folder \""
+                                        + LOCALE_FOLDER + "\" in data folder for plugin " + getOwningPlugin()
+                                        + " - not loading");
                             }
-                        } else {
-                            LOGGER.warning("Found subfolder \"" + locale.getName() + "\" within locale folder \""
-                                    + LOCALE_FOLDER + "\" in data folder for plugin " + getOwningPlugin()
-                                    + " - not loading");
                         }
                     }
+                } else {
+                    LOGGER.warning("Locale folder \"" + LOCALE_FOLDER + "\" in data folder for plugin "
+                            + getOwningPlugin() + " is not a directory - not loading custom locales");
                 }
-            } else {
-                LOGGER.warning("Locale folder \"" + LOCALE_FOLDER + "\" in data folder for plugin " + getOwningPlugin()
-                        + " is not a directory - not loading custom locales");
             }
         }
     }
@@ -156,7 +159,7 @@ public class LocaleManager {
                     String entryName = entry.getName();
                     if (entryName.startsWith(LOCALE_FOLDER + "/") && entryName.endsWith(".properties")) {
                         String[] arr = entryName.split("/");
-                        String localeName = arr[arr.length - 1].replace("\\.properties", "");
+                        String localeName = arr[arr.length - 1].replace(".properties", "");
                         loadLocale(localeName, zip, true);
                     }
                 }

@@ -144,7 +144,7 @@ public class Localizable {
             Properties props = getParent().configs.get(locale);
             if (props.containsKey(getKey())) { // check if the message is defined in the locale
                 String message = (String) props.get(getKey()); // yay, it worked
-                for (int i = 0; i < fallbacks.length; i++) { // replace placeholder sequences
+                for (int i = 0; i < replacements.length; i++) { // replace placeholder sequences
                     message = message.replaceAll("%" + (i + 1), replacements[i]);
                 }
                 return (prefix != null ? prefix : "") + message;
@@ -180,7 +180,7 @@ public class Localizable {
         } else if (!locale.equals(getParent().getDefaultLocale())) {
             return localizeIn(getParent().getDefaultLocale(), true); // try the default locale
         } else {
-            return getKey(); // last resort if no locale is available
+            return (prefix != null ? prefix : "") + getKey(); // last resort if no locale is available
         }
     }
 

@@ -28,6 +28,7 @@
  */
 package net.caseif.rosetta;
 
+import com.google.common.collect.Lists;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -42,6 +43,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,6 +255,26 @@ public class LocaleManager {
         return getDefaultLocale();
     }
 
+    /**
+     * Backwards-compatible getOnlinePlayers()
+     *
+     * @return Current online player list
+     */
+    @SuppressWarnings("unchecked")
+    Collection<? extends Player> getOnlinePlayers() {
+        try {
+            Object obj = NmsHelper.BUKKIT_GETONLINEPLAYERS.invoke(null);
+            if (obj instanceof Collection) {
+                return (Collection<? extends Player>) obj; // new method
+            } else {
+                return Lists.newArrayList((Player[]) obj);
+            }
+        } catch (IllegalAccessException | InvocationTargetException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     private static class NmsHelper {
 
         private static final boolean SUPPORT;
@@ -260,6 +282,7 @@ public class LocaleManager {
         private static final String PACKAGE_VERSION;
 
         private static final Method CRAFTPLAYER_GETHANDLE;
+        private static final Method BUKKIT_GETONLINEPLAYERS;
 
         private static final Field ENTITY_PLAYER_LOCALE;
         private static final Field LOCALE_LANGUAGE_WRAPPED_STRING;
@@ -269,9 +292,12 @@ public class LocaleManager {
             PACKAGE_VERSION = array.length == 4 ? array[3] + "." : "";
 
             Method craftPlayer_getHandle = null;
+            Method bukkit_getOnlinePlayers = null;
             Field entityPlayer_locale = null;
             Field localeLanguage_wrappedString = null;
             try {
+                bukkit_getOnlinePlayers = Bukkit.class.getMethod("getOnlinePlayers");
+
                 craftPlayer_getHandle = getCraftClass("entity.CraftPlayer").getMethod("getHandle");
 
                 entityPlayer_locale = getNmsClass("EntityPlayer").getDeclaredField("locale");
@@ -293,6 +319,7 @@ public class LocaleManager {
                         + "disabled");
             }
             CRAFTPLAYER_GETHANDLE = craftPlayer_getHandle;
+            BUKKIT_GETONLINEPLAYERS = bukkit_getOnlinePlayers;
             ENTITY_PLAYER_LOCALE = entityPlayer_locale;
             LOCALE_LANGUAGE_WRAPPED_STRING = localeLanguage_wrappedString;
             SUPPORT = CRAFTPLAYER_GETHANDLE != null;

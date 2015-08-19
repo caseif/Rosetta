@@ -29,6 +29,8 @@
 package net.caseif.rosetta;
 
 import com.google.common.collect.Lists;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -206,17 +208,12 @@ public class Localizable {
      * are included by default by the library.</p>
      *
      * @param sender The {@link CommandSender} to localize this {@link Localizable} for
-     * @param fallbacks Locales to fall back upon if this {@link Localizable}
-     *     is not available in the player's locale (the parent
-     *     {@link LocaleManager}'s default locale will be used if all fallbacks
-     *     are exhausted, and if this is unavailable, the value of
-     *     {@link Localizable#getKey()} will be used instead)
      * @return A string representing the localized message, or this
      *     {@link Localizable}'s internal key if no localizations are available
      * @since 1.0
      */
-    public String localizeFor(CommandSender sender, String... fallbacks) {
-        return sender instanceof Player ? localizeIn(getParent().getLocale((Player) sender), fallbacks) : localize();
+    public String localizeFor(CommandSender sender) {
+        return sender instanceof Player ? localizeIn(getParent().getLocale((Player) sender)) : localize();
     }
 
     /**
@@ -231,15 +228,40 @@ public class Localizable {
      *
      * @param sender The {@link CommandSender} to send this {@link Localizable}
      *     to
-     * @param fallbacks Locales to fall back upon if this {@link Localizable}
-     *     is not available in the player's locale (the parent
-     *     {@link LocaleManager}'s default locale will be used if all fallbacks
-     *     are exhausted, and if this is unavailable, the value of
-     *     {@link Localizable#getKey()} will be used instead)
      * @since 1.0
      */
-    public void sendTo(CommandSender sender, String... fallbacks) {
-        sender.sendMessage(localizeFor(sender, fallbacks));
+    public void sendTo(CommandSender sender) {
+        sender.sendMessage(localizeFor(sender));
+    }
+
+    /**
+     * Broadcasts this {@link Localizable} to all players on the server,
+     * applying the respective locale for each player.
+     *
+     * @since 1.0
+     */
+    public void broadcast() {
+        for (Player player : getParent().getOnlinePlayers()) {
+            sendTo(player);
+        }
+        Bukkit.getLogger().info(localize());
+    }
+
+    /**
+     * Broadcasts this {@link Localizable} to all players in the given
+     * {@link World}s.
+     *
+     * @param worlds The {@link World}s to broadcast to
+     *
+     * @since 1.0
+     */
+    public void broadcast(World... worlds) {
+        for (World w : worlds) {
+            for (Player player : w.getPlayers()) {
+                sendTo(player);
+            }
+        }
+        Bukkit.getLogger().info(localize());
     }
 
 }

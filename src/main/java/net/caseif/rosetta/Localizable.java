@@ -29,6 +29,7 @@
 package net.caseif.rosetta;
 
 import com.google.common.collect.Lists;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -234,6 +235,29 @@ public class Localizable {
      */
     public void sendTo(Player player, String... fallbacks) {
         player.sendMessage(localizeFor(player, fallbacks));
+    }
+
+    /**
+     * Sends this {@link Localizable} to the given {@link CommandSender}. If the
+     * {@link CommandSender} is also a {@link Player}, the message will be
+     * localized in their respective locale. Otherwise, it will be localized in
+     * the parent {@link LocaleManager}'s default locale.
+     *
+     * <p>It is unnecessary to include alternate dialects of a locale as
+     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
+     * are included by default by the library.</p>
+     *
+     * @param sender The {@link CommandSender} to send this {@link Localizable}
+     *     to
+     * @param fallbacks Locales to fall back upon if this {@link Localizable}
+     *     is not available in the player's locale (the parent
+     *     {@link LocaleManager}'s default locale will be used if all fallbacks
+     *     are exhausted, and if this is unavailable, the value of
+     *     {@link Localizable#getKey()} will be used instead)
+     * @since 1.0
+     */
+    public void sendTo(CommandSender sender, String... fallbacks) {
+
     }
 
 }

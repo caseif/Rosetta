@@ -231,17 +231,9 @@ public class LocaleManager {
     }
 
     /**
-     * Gets the {@link Localizable} associated with the given key, using the
-     * given var-arg string array as replacements for placeholder sequences.
-     *
-     * <p>Placeholder sequences are defined as a percent symbol (%) followed by
-     * a number greater than or equal to 1. The first element of the replacement
-     * string array will replace any placeholder sequences matching {@code %1},
-     * the second, sequences matching {@code %2}, and so on.</p>
+     * Gets the {@link Localizable} associated with the given key.
      *
      * @param key The key of the message to retrieve
-     * @param replacements A var-args parameter representing replacements for
-     *     placeholder sequences
      * @return The retrieved message as a {@link Localizable}
      * @since 1.0
      */

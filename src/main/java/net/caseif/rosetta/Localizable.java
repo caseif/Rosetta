@@ -196,13 +196,16 @@ public class Localizable {
     }
 
     /**
-     * Localizes this {@link Localizable} in the given {@link Player}'s locale.
+     * Localizes this {@link Localizable} for the given {@link CommandSender}.
+     * If the {@link CommandSender} is also a {@link Player}, the message will
+     * be localized in their respective locale. Otherwise, it will be localized
+     * in the parent {@link LocaleManager}'s default locale.
      *
      * <p>It is unnecessary to include alternate dialects of a locale as
      * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
      * are included by default by the library.</p>
      *
-     * @param player The {@link Player} to localize this {@link Localizable} for
+     * @param sender The {@link CommandSender} to localize this {@link Localizable} for
      * @param fallbacks Locales to fall back upon if this {@link Localizable}
      *     is not available in the player's locale (the parent
      *     {@link LocaleManager}'s default locale will be used if all fallbacks
@@ -212,29 +215,8 @@ public class Localizable {
      *     {@link Localizable}'s internal key if no localizations are available
      * @since 1.0
      */
-    public String localizeFor(Player player, String... fallbacks) {
-        return localizeIn(getParent().getLocale(player), fallbacks);
-    }
-
-    /**
-     * Sends this {@link Localizable} to the given {@link Player} in their
-     * respective locale.
-     *
-     * <p>It is unnecessary to include alternate dialects of a locale as
-     * fallbacks (e.g. {@code en_GB} as a fallback for {@code en_US}), as they
-     * are included by default by the library.</p>
-     *
-     * @param player The {@link Player} to send this {@link Localizable}
-     *     to
-     * @param fallbacks Locales to fall back upon if this {@link Localizable}
-     *     is not available in the player's locale (the parent
-     *     {@link LocaleManager}'s default locale will be used if all fallbacks
-     *     are exhausted, and if this is unavailable, the value of
-     *     {@link Localizable#getKey()} will be used instead)
-     * @since 1.0
-     */
-    public void sendTo(Player player, String... fallbacks) {
-        player.sendMessage(localizeFor(player, fallbacks));
+    public String localizeFor(CommandSender sender, String... fallbacks) {
+        return sender instanceof Player ? localizeIn(getParent().getLocale((Player) sender), fallbacks) : localize();
     }
 
     /**
@@ -257,7 +239,7 @@ public class Localizable {
      * @since 1.0
      */
     public void sendTo(CommandSender sender, String... fallbacks) {
-
+        sender.sendMessage(localizeFor(sender, fallbacks));
     }
 
 }

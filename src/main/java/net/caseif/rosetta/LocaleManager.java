@@ -114,8 +114,8 @@ public class LocaleManager {
      */
     public LocaleManager(Plugin plugin) {
         this.owner = plugin;
-        loadCustomLocales();
         loadShippedLocales();
+        loadCustomLocales(); // custom locales will override
     }
 
     private void loadCustomLocales() {
@@ -128,12 +128,15 @@ public class LocaleManager {
                     if (contents != null) {
                         for (File locale : contents) {
                             if (!locale.isDirectory()) {
-                                try {
-                                    loadLocale(locale.getName(), new FileInputStream(locale), false);
-                                } catch (IOException ex) {
-                                    LOGGER.warning("Failed to load custom locale \"" + locale.getName()
-                                            + "\" for plugin " + getOwningPlugin() + " (" + ex.getClass().getName()
-                                            + ")");
+                                if (locale.getName().endsWith(".properties")) {
+                                    try {
+                                        loadLocale(locale.getName().replace(".properties", ""),
+                                                new FileInputStream(locale), false);
+                                    } catch (IOException ex) {
+                                        LOGGER.warning("Failed to load custom locale \"" + locale.getName()
+                                                + "\" for plugin " + getOwningPlugin() + " (" + ex.getClass().getName()
+                                                + ")");
+                                    }
                                 }
                             } else {
                                 LOGGER.warning("Found subfolder \"" + locale.getName() + "\" within locale folder \""

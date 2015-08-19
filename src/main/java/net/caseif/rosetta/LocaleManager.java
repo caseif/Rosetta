@@ -245,8 +245,8 @@ public class LocaleManager {
      * @return The retrieved message as a {@link Localizable}
      * @since 1.0
      */
-    public Localizable getLocalizable(String key, String... replacements) {
-        return new Localizable(this, key, replacements);
+    public Localizable getLocalizable(String key) {
+        return new Localizable(this, key);
     }
 
     String getLocale(Player player) {

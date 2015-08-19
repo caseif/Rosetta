@@ -52,13 +52,12 @@ public class Localizable {
     private final LocaleManager parent;
     private final String key;
 
-    private String[] replacements;
+    private String[] replacements = new String[0];
     private String prefix;
 
-    Localizable(LocaleManager parent, String key, String... replacements) {
+    Localizable(LocaleManager parent, String key) {
         this.parent = parent;
         this.key = key;
-        this.replacements = replacements;
     }
 
     /**

@@ -37,6 +37,7 @@ import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
 
 /**
  * Represents an object which has the potential to be localized in one of
@@ -147,7 +148,7 @@ public class Localizable {
             if (props.containsKey(getKey())) { // check if the message is defined in the locale
                 String message = (String) props.get(getKey()); // yay, it worked
                 for (int i = 0; i < replacements.length; i++) { // replace placeholder sequences
-                    message = message.replaceAll("%" + (i + 1), replacements[i]);
+                    message = message.replaceAll("%" + (i + 1), Matcher.quoteReplacement(replacements[i]));
                 }
                 return (prefix != null ? prefix : "") + message;
             }

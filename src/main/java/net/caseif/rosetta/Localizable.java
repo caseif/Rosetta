@@ -57,6 +57,7 @@ public class Localizable {
     private final String key;
 
     private String[] replacements = new String[0];
+    private Localizable[] locReplacements = new Localizable[0];
     private String prefix;
 
     Localizable(LocaleManager parent, String key) {
@@ -93,7 +94,7 @@ public class Localizable {
      * string array will replace any placeholder sequences matching {@code %1},
      * the second, sequences matching {@code %2}, and so on.</p>
      *
-     * <p><strong>Note:</strong> Mutating the values of the array passed as a
+     * <p><strong>Note:</strong> Mutating the contents of the array passed as a
      * parameter after calling this method will not impact this
      * {@link Localizable}.</p>
      *
@@ -104,6 +105,33 @@ public class Localizable {
      */
     public Localizable withReplacements(String... replacements) {
         this.replacements = Arrays.copyOf(replacements, replacements.length);
+        this.locReplacements = null;
+        return this;
+    }
+
+    /**
+     * Sets the replacements for placeholder sequences in this
+     * {@link Localizable} as {@link Localizable} objects. These objects will be
+     * localized appropriately when the parent {@link Localizable} (the object
+     * this method is invoked upon) is localized.
+     *
+     * <p>Placeholder sequences are defined as a percent symbol (%) followed by
+     * a number greater than or equal to 1. The first element of the replacement
+     * string array will replace any placeholder sequences matching {@code %1},
+     * the second, sequences matching {@code %2}, and so on.</p>
+     *
+     * <p><strong>Note:</strong> Mutating the contents of the array passed as a
+     * parameter after calling this method will not impact this
+     * {@link Localizable}.</p>
+     *
+     * @param replacements The replacement strings to set for this
+     *     {@link Localizable}
+     * @return This {@link Localizable} object, for chaining)
+     * @since 1.1
+     */
+    public Localizable withReplacements(Localizable... replacements) {
+        this.locReplacements = Arrays.copyOf(replacements, replacements.length);
+        this.replacements = null;
         return this;
     }
 
@@ -147,8 +175,15 @@ public class Localizable {
             Properties props = getParent().configs.get(locale);
             if (props.containsKey(getKey())) { // check if the message is defined in the locale
                 String message = (String) props.get(getKey()); // yay, it worked
-                for (int i = 0; i < replacements.length; i++) { // replace placeholder sequences
-                    message = message.replaceAll("%" + (i + 1), Matcher.quoteReplacement(replacements[i]));
+                if (replacements != null) {
+                    for (int i = 1; i <= replacements.length; i++) { // replace placeholder sequences
+                        message = message.replaceAll("%" + i, Matcher.quoteReplacement(replacements[i]));
+                    }
+                } else if (locReplacements != null) {
+                    for (int i = 1; i <= locReplacements.length; i++) { // replace placeholder sequences
+                        String strRepl = locReplacements[i].localizeIn(locale, false);
+                        message = message.replaceAll("%" + i, Matcher.quoteReplacement(strRepl));
+                    }
                 }
                 return (prefix != null ? prefix : "") + message;
             }

@@ -124,9 +124,9 @@ public class Localizable {
      * parameter after calling this method will not impact this
      * {@link Localizable}.</p>
      *
-     * @param replacements The replacement strings to set for this
+     * @param replacements The replacement sequences to set for this
      *     {@link Localizable}
-     * @return This {@link Localizable} object, for chaining)
+     * @return This {@link Localizable} object, for chaining
      * @since 1.1
      */
     public Localizable withReplacements(Localizable... replacements) {

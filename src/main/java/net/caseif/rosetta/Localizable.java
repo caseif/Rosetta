@@ -59,7 +59,8 @@ public class Localizable {
 
     private String[] replacements = new String[0];
     private Localizable[] locReplacements = new Localizable[0];
-    private String prefix;
+    private String prefix = "";
+    private String suffix = "";
 
     Localizable(LocaleManager parent, String key) {
         this.parent = parent;
@@ -146,7 +147,21 @@ public class Localizable {
      * @since 1.0
      */
     public Localizable withPrefix(String prefix) {
-        this.prefix = prefix;
+        this.prefix = fromNullableString(prefix);
+        return this;
+    }
+
+    /**
+     * Sets the suffix to append to this {@link Localizable} when it is
+     * localized.
+     *
+     * @param suffix The suffix to append to this {@link Localizable} when it
+     *     is localized.
+     * @return This {@link Localizable} object, for chaining
+     * @since 1.0
+     */
+    public Localizable withSuffix(String suffix) {
+        this.suffix = fromNullableString(suffix);
         return this;
     }
 
@@ -186,7 +201,7 @@ public class Localizable {
                         message = message.replaceAll("%" + i, Matcher.quoteReplacement(strRepl));
                     }
                 }
-                return (prefix != null ? prefix : "") + message;
+                return prefix + message + suffix;
             }
         }
         if (!recursive) { // only inject alternatives the method is not called recursively and the first choice fails
@@ -219,7 +234,7 @@ public class Localizable {
         } else if (!locale.equals(getParent().getDefaultLocale())) {
             return localizeIn(getParent().getDefaultLocale(), true); // try the default locale
         } else {
-            return (prefix != null ? prefix : "") + getKey(); // last resort if no locale is available
+            return prefix + getKey() + suffix; // last resort if no locale is available
         }
     }
 
@@ -299,6 +314,18 @@ public class Localizable {
             }
         }
         Bukkit.getLogger().info(localize());
+    }
+
+    /**
+     * Returns the parameter if it is not {@code null}; otherwise returns an
+     * empty {@link String}.
+     *
+     * @param nullable The {@link String} to process
+     * @return The parameter if it is not {@code null}; otherwise an empty
+     * {@link String}
+     */
+    private String fromNullableString(String nullable) {
+        return nullable != null ? nullable : "";
     }
 
 }

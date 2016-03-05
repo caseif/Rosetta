@@ -12,7 +12,7 @@ LocaleManager localeManager = new LocaleManager(this);
 ```
 
 The rest should be sufficiently explained through the documentation (published continuously) at
-[http://jd.caseif.net/rosetta](http://jd.caseif.net/rosetta).
+[http://jd.caseif.net/rosetta](https://jd.caseif.net/rosetta).
 
 To define locales, simply create a `lang` folder in your JAR and insert a `.properties` file for each locale you wish to
 define. For example, `en_US.properties`, `de_DE.properties`, etc. These will be loaded by Rosetta and all contained keys
@@ -57,7 +57,6 @@ Rosetta uses Gradle as its build system. To clone and build the project from scr
 
 - `git clone https://github.com/caseif/Rosetta.git`
 - `cd Rosetta`
-- `cp scripts/* .git/hooks`
 - `./gradlew` (`gradlew` or `sh ./gradlew` on Windows)
 
 ### Contact

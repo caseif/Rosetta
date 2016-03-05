@@ -1,7 +1,7 @@
 /*
  * New BSD License (BSD-new)
  *
- * Copyright (c) 2015 Maxim Roncacé
+ * Copyright (c) 2015-2016 Max Roncace
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package net.caseif.rosetta;
 
 import com.google.common.collect.Lists;

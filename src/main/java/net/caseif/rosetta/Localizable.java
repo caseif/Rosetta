@@ -48,8 +48,8 @@ import java.util.regex.Matcher;
  * parameters or in its parent {@link LocaleManager}'s default locale, it will
  * output its internal key instead.</p>
  *
- * @author Max Roncacé
- * @version 1.0.0
+ * @author Max Roncace
+ * @version 1.1.1
  * @since 1.0
  */
 public class Localizable {
@@ -192,13 +192,13 @@ public class Localizable {
             if (props.containsKey(getKey())) { // check if the message is defined in the locale
                 String message = (String) props.get(getKey()); // yay, it worked
                 if (replacements != null) {
-                    for (int i = 1; i <= replacements.length; i++) { // replace placeholder sequences
-                        message = message.replaceAll("%" + i, Matcher.quoteReplacement(replacements[i]));
+                    for (int i = 0; i < replacements.length; i++) { // replace placeholder sequences
+                        message = message.replaceAll("%" + (i + 1), Matcher.quoteReplacement(replacements[i]));
                     }
                 } else if (locReplacements != null) {
-                    for (int i = 1; i <= locReplacements.length; i++) { // replace placeholder sequences
+                    for (int i = 0; i < locReplacements.length; i++) { // replace placeholder sequences
                         String strRepl = locReplacements[i].localizeIn(locale, false);
-                        message = message.replaceAll("%" + i, Matcher.quoteReplacement(strRepl));
+                        message = message.replaceAll("%" + (i + 1), Matcher.quoteReplacement(strRepl));
                     }
                 }
                 return prefix + message + suffix;

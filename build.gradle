@@ -13,7 +13,7 @@ defaultTasks 'clean', 'licenseFormat', 'build'
 
 // Project information
 group = 'net.caseif.rosetta'
-version = '1.1.1-SNAPSHOT'
+version = '1.1.1'
 
 // Extended project information
 ext.projectName = 'rosetta'

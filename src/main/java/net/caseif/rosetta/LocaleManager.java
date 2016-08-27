@@ -285,8 +285,10 @@ public class LocaleManager {
 
         private static final String PACKAGE_VERSION;
 
+
         private static final Method CRAFTPLAYER_GETHANDLE;
         private static final Method BUKKIT_GETONLINEPLAYERS;
+        private static final Method CRAFTPLAYER_GETLOCALE;
 
         private static final Field ENTITY_PLAYER_LOCALE;
         private static final Field LOCALE_LANGUAGE_WRAPPED_STRING;
@@ -297,24 +299,34 @@ public class LocaleManager {
 
             Method craftPlayer_getHandle = null;
             Method bukkit_getOnlinePlayers = null;
+            Method craftPlayer_getLocale = null;
             Field entityPlayer_locale = null;
             Field localeLanguage_wrappedString = null;
             try {
                 bukkit_getOnlinePlayers = Bukkit.class.getMethod("getOnlinePlayers");
 
-                craftPlayer_getHandle = getCraftClass("entity.CraftPlayer").getMethod("getHandle");
+                Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
 
-                entityPlayer_locale = getNmsClass("EntityPlayer").getDeclaredField("locale");
-                entityPlayer_locale.setAccessible(true);
-                if (entityPlayer_locale.getType().getSimpleName().equals("LocaleLanguage")) {
-                    // On versions prior to 1.6, the locale is stored as a LocaleLanguage object.
-                    // The actual locale string is wrapped within it.
-                    // On 1.5, it's stored in field "e".
-                    // On 1.3 and 1.4, it's stored in field "d".
-                    try { // try for 1.5
-                        localeLanguage_wrappedString = entityPlayer_locale.getType().getDeclaredField("e");
-                    } catch (NoSuchFieldException ex) { // we're pre-1.5
-                        localeLanguage_wrappedString = entityPlayer_locale.getType().getDeclaredField("d");
+                // for reasons not known to me Paper decided to make EntityPlayer#locale null by default and have the
+                // fallback defined in CraftPlayer#getLocale. Rosetta will use that method if possible and fall back to
+                // accessing the field directly.
+                craftPlayer_getLocale = craftPlayer.getMethod("getLocale");
+
+                if (craftPlayer_getLocale == null) { // fallback for non-Spigot software
+                    craftPlayer_getHandle = craftPlayer.getMethod("getHandle");
+
+                    entityPlayer_locale = getNmsClass("EntityPlayer").getDeclaredField("locale");
+                    entityPlayer_locale.setAccessible(true);
+                    if (entityPlayer_locale.getType().getSimpleName().equals("LocaleLanguage")) {
+                        // On versions prior to 1.6, the locale is stored as a LocaleLanguage object.
+                        // The actual locale string is wrapped within it.
+                        // On 1.5, it's stored in field "e".
+                        // On 1.3 and 1.4, it's stored in field "d".
+                        try { // try for 1.5
+                            localeLanguage_wrappedString = entityPlayer_locale.getType().getDeclaredField("e");
+                        } catch (NoSuchFieldException ex) { // we're pre-1.5
+                            localeLanguage_wrappedString = entityPlayer_locale.getType().getDeclaredField("d");
+                        }
                     }
                 }
             } catch (ClassNotFoundException | NoSuchFieldException | NoSuchMethodException ex) {
@@ -324,6 +336,7 @@ public class LocaleManager {
             }
             CRAFTPLAYER_GETHANDLE = craftPlayer_getHandle;
             BUKKIT_GETONLINEPLAYERS = bukkit_getOnlinePlayers;
+            CRAFTPLAYER_GETLOCALE = craftPlayer_getLocale;
             ENTITY_PLAYER_LOCALE = entityPlayer_locale;
             LOCALE_LANGUAGE_WRAPPED_STRING = localeLanguage_wrappedString;
             SUPPORT = CRAFTPLAYER_GETHANDLE != null;
@@ -334,6 +347,10 @@ public class LocaleManager {
         }
 
         private static String getLocale(Player player) throws IllegalAccessException, InvocationTargetException {
+            if (CRAFTPLAYER_GETLOCALE != null) {
+                return (String) CRAFTPLAYER_GETLOCALE.invoke(player);
+            }
+
             Object entityPlayer = CRAFTPLAYER_GETHANDLE.invoke(player);
             Object locale = ENTITY_PLAYER_LOCALE.get(entityPlayer);
             if (LOCALE_LANGUAGE_WRAPPED_STRING != null) {

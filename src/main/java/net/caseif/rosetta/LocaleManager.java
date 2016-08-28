@@ -285,10 +285,10 @@ public class LocaleManager {
 
         private static final String PACKAGE_VERSION;
 
-
+        private static final Method PLAYER_SPIGOT;
+        private static final Method PLAYER$SPIGOT_GETLOCALE;
         private static final Method CRAFTPLAYER_GETHANDLE;
         private static final Method BUKKIT_GETONLINEPLAYERS;
-        private static final Method CRAFTPLAYER_GETLOCALE;
 
         private static final Field ENTITY_PLAYER_LOCALE;
         private static final Field LOCALE_LANGUAGE_WRAPPED_STRING;
@@ -297,9 +297,10 @@ public class LocaleManager {
             String[] array = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
             PACKAGE_VERSION = array.length == 4 ? array[3] + "." : "";
 
+            Method player_spigot = null;
+            Method player$spigot_getLocale = null;
             Method craftPlayer_getHandle = null;
             Method bukkit_getOnlinePlayers = null;
-            Method craftPlayer_getLocale = null;
             Field entityPlayer_locale = null;
             Field localeLanguage_wrappedString = null;
             try {
@@ -308,11 +309,16 @@ public class LocaleManager {
                 Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
 
                 // for reasons not known to me Paper decided to make EntityPlayer#locale null by default and have the
-                // fallback defined in CraftPlayer#getLocale. Rosetta will use that method if possible and fall back to
-                // accessing the field directly.
-                craftPlayer_getLocale = craftPlayer.getMethod("getLocale");
+                // fallback defined in CraftPlayer$Spigot#getLocale. Rosetta will use that method if possible and fall
+                // back to accessing the field directly.
+                try {
+                    player_spigot = Player.class.getMethod("spigot");
+                    Class<?> player$spigot = Class.forName("org.bukkit.entity.Player$Spigot");
+                    player$spigot_getLocale = player$spigot.getMethod("getLocale");
+                } catch (NoSuchMethodException ignored) { // we're non-Spigot or old
+                }
 
-                if (craftPlayer_getLocale == null) { // fallback for non-Spigot software
+                if (player$spigot_getLocale == null) { // fallback for non-Spigot software
                     craftPlayer_getHandle = craftPlayer.getMethod("getHandle");
 
                     entityPlayer_locale = getNmsClass("EntityPlayer").getDeclaredField("locale");
@@ -334,9 +340,10 @@ public class LocaleManager {
                 LOGGER.severe("Cannot initialize NMS components - per-player localization "
                         + "disabled");
             }
+            PLAYER_SPIGOT = player_spigot;
+            PLAYER$SPIGOT_GETLOCALE = player$spigot_getLocale;
             CRAFTPLAYER_GETHANDLE = craftPlayer_getHandle;
             BUKKIT_GETONLINEPLAYERS = bukkit_getOnlinePlayers;
-            CRAFTPLAYER_GETLOCALE = craftPlayer_getLocale;
             ENTITY_PLAYER_LOCALE = entityPlayer_locale;
             LOCALE_LANGUAGE_WRAPPED_STRING = localeLanguage_wrappedString;
             SUPPORT = CRAFTPLAYER_GETHANDLE != null;
@@ -347,8 +354,8 @@ public class LocaleManager {
         }
 
         private static String getLocale(Player player) throws IllegalAccessException, InvocationTargetException {
-            if (CRAFTPLAYER_GETLOCALE != null) {
-                return (String) CRAFTPLAYER_GETLOCALE.invoke(player);
+            if (PLAYER$SPIGOT_GETLOCALE != null) {
+                return (String) PLAYER$SPIGOT_GETLOCALE.invoke(PLAYER_SPIGOT.invoke(player));
             }
 
             Object entityPlayer = CRAFTPLAYER_GETHANDLE.invoke(player);

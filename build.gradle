@@ -1,19 +1,19 @@
 // apply Gradle plugins
 plugins {
     id 'java'
-    id 'maven'
+    id 'maven-publish'
     id 'eclipse'
     id 'idea'
 
     id 'checkstyle'
-    id 'net.minecrell.licenser' version '0.1.3'
+    id 'org.cadixdev.licenser' version '0.6.1'
 }
 
 defaultTasks 'clean', 'licenseFormat', 'build'
 
 // Project information
 group = 'net.caseif.rosetta'
-version = '1.1.3'
+version = '1.1.4-SNAPSHOT'
 
 // Extended project information
 ext.projectName = 'rosetta'
@@ -21,15 +21,6 @@ ext.description = 'A localization API for Bukkit plugins.'
 ext.inceptionYear = '2015'
 ext.packaging = 'jar'
 ext.author = 'Max Roncace'
-ext.versionSuffix = version.contains('SNAPSHOT') ? (
-        (
-        System.getenv('GIT_COMMIT') ? ('-git('
-                + System.getenv('GIT_BRANCH')
-                .substring(System.getenv('GIT_BRANCH').split('/')[0].length() + 1) + '-'
-                + System.getenv('GIT_COMMIT').substring(0, 7) + ')') : ''
-        )
-        + (System.getenv('BUILD_NUMBER') ? '-jnks' + System.getenv('BUILD_NUMBER') : '')
-) : ''
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -47,7 +38,7 @@ repositories {
 
 // Project dependencies
 dependencies {
-    compile 'org.bukkit:bukkit:1.8.8-R0.1-SNAPSHOT'
+    implementation 'org.bukkit:bukkit:1.8.8-R0.1-SNAPSHOT'
 
     deployerJars 'org.apache.maven.wagon:wagon-ssh:2.9'
 }
@@ -83,7 +74,7 @@ tasks.withType(Checkstyle){
 jar.manifest.mainAttributes(
         'Created-By': System.properties['java.vm.version'] + " (" + System.properties['java.vm.vendor'] + ")",
         'Specification-Title': name,
-        'Specification-Version': version + versionSuffix,
+        'Specification-Version': version,
         'Specitication-Vendor': author
 )
 
@@ -104,36 +95,33 @@ artifacts {
     archives javadocJar
 }
 
-uploadArchives {
-    repositories.mavenDeployer {
-        setUniqueVersion(true)
-        configuration = configurations.deployerJars
-        if (project.hasProperty('mavenRepo')) {
-            repository(url: project.property('mavenRepo')) {
-                authentication(userName: project.property('mavenUser'), password: project.property('mavenPass'))
-            }
-        }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            /*setUniqueVersion(true)
+            configuration = configurations.deployerJars
+            if (project.hasProperty('mavenRepo')) {
+                repository(url: project.property('mavenRepo')) {
+                    authentication(userName: project.property('mavenUser'), password: project.property('mavenPass'))
+                }
+            }*/
 
-        pom {
-            groupId = project.group
-            version = project.version
-            artifactId = project.ext.projectName
-            project {
-                packaging 'jar'
-                description project.ext.description
-                url 'http://github.com/caseif/Rosetta'
+            pom {
+                name = 'Rosetta'
+                description = project.ext.description
+                url = 'http://github.com/caseif/Rosetta'
 
                 scm {
-                    url 'https://github.com/caseif/Rosetta'
-                    connection 'scm:git:git://github.com/caseif/Rosetta.git'
-                    developerConnection 'scm:git:git@github.com:caseif/Rosetta.git'
+                    url = 'https://github.com/caseif/Rosetta'
+                    connection = 'scm:git:git://github.com/caseif/Rosetta.git'
+                    developerConnection = 'scm:git:git@github.com:caseif/Rosetta.git'
                 }
 
                 licenses {
                     license {
-                        name 'BSD 3-Clause'
-                        url 'http://opensource.org/licenses/BSD-3-clause'
-                        distribution 'repo'
+                        name = 'BSD 3-Clause'
+                        url = 'http://opensource.org/licenses/BSD-3-clause'
+                        distribution = 'repo'
                     }
                 }
             }
@@ -141,6 +129,6 @@ uploadArchives {
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.11'
+wrapper {
+    gradleVersion = '7.4'
 }

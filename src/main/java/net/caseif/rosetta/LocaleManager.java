@@ -267,7 +267,7 @@ public class LocaleManager {
     @SuppressWarnings("unchecked")
     Collection<? extends Player> getOnlinePlayers() {
         try {
-            Object obj = NmsHelper.BUKKIT_GETONLINEPLAYERS.invoke(null);
+            Object obj = NmsHelper.M_BUKKIT_GETONLINEPLAYERS.invoke(null);
             if (obj instanceof Collection) {
                 return (Collection<? extends Player>) obj; // new method
             } else {
@@ -285,26 +285,28 @@ public class LocaleManager {
 
         private static final String PACKAGE_VERSION;
 
-        private static final Method PLAYER_SPIGOT;
-        private static final Method PLAYER$SPIGOT_GETLOCALE;
-        private static final Method CRAFTPLAYER_GETHANDLE;
-        private static final Method BUKKIT_GETONLINEPLAYERS;
+        private static final Method M_PLAYER_SPIGOT;
+        private static final Method M_PLAYER$SPIGOT_GETLOCALE;
+        private static final Method M_CRAFTPLAYER_GETHANDLE;
+        private static final Method M_BUKKIT_GETONLINEPLAYERS;
 
-        private static final Field ENTITY_PLAYER_LOCALE;
-        private static final Field LOCALE_LANGUAGE_WRAPPED_STRING;
+        private static final Field F_ENTITY_PLAYER_LOCALE;
+        private static final Field F_LOCALE_LANGUAGE_WRAPPED_STRING;
 
         static {
             String[] array = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
             PACKAGE_VERSION = array.length == 4 ? array[3] + "." : "";
 
-            Method player_spigot = null;
-            Method player$spigot_getLocale = null;
-            Method craftPlayer_getHandle = null;
-            Method bukkit_getOnlinePlayers = null;
-            Field entityPlayer_locale = null;
-            Field localeLanguage_wrappedString = null;
+            Method m_Player_spigot = null;
+            Method m_Player$spigot_getLocale = null;
+            Method m_CraftPlayer_getHandle = null;
+            Method m_Bukkit_getOnlinePlayers = null;
+            Field f_EntityPlayer_locale = null;
+            Field f_LocaleLanguage_wrappedString = null;
+
+            boolean success;
             try {
-                bukkit_getOnlinePlayers = Bukkit.class.getMethod("getOnlinePlayers");
+                m_Bukkit_getOnlinePlayers = Bukkit.class.getMethod("getOnlinePlayers");
 
                 Class<?> craftPlayer = getCraftClass("entity.CraftPlayer");
 
@@ -312,41 +314,58 @@ public class LocaleManager {
                 // fallback defined in CraftPlayer$Spigot#getLocale. Rosetta will use that method if possible and fall
                 // back to accessing the field directly.
                 try {
-                    player_spigot = Player.class.getMethod("spigot");
+                    m_Player_spigot = Player.class.getMethod("spigot");
                     Class<?> player$spigot = Class.forName("org.bukkit.entity.Player$Spigot");
-                    player$spigot_getLocale = player$spigot.getMethod("getLocale");
+                    m_Player$spigot_getLocale = player$spigot.getMethod("getLocale");
                 } catch (NoSuchMethodException ignored) { // we're non-Spigot or old
                 }
 
-                if (player$spigot_getLocale == null) { // fallback for non-Spigot software
-                    craftPlayer_getHandle = craftPlayer.getMethod("getHandle");
+                if (m_Player$spigot_getLocale == null) { // fallback for non-Spigot software
+                    m_CraftPlayer_getHandle = craftPlayer.getMethod("getHandle");
 
-                    entityPlayer_locale = getNmsClass("EntityPlayer").getDeclaredField("locale");
-                    entityPlayer_locale.setAccessible(true);
-                    if (entityPlayer_locale.getType().getSimpleName().equals("LocaleLanguage")) {
+                    Class<?> c_EntityPlayer = m_CraftPlayer_getHandle.getReturnType();
+
+                    f_EntityPlayer_locale = c_EntityPlayer.getDeclaredField("locale");
+                    f_EntityPlayer_locale.setAccessible(true);
+                    if (f_EntityPlayer_locale.getType().getSimpleName().equals("LocaleLanguage")) {
                         // On versions prior to 1.6, the locale is stored as a LocaleLanguage object.
                         // The actual locale string is wrapped within it.
                         // On 1.5, it's stored in field "e".
                         // On 1.3 and 1.4, it's stored in field "d".
                         try { // try for 1.5
-                            localeLanguage_wrappedString = entityPlayer_locale.getType().getDeclaredField("e");
+                            f_LocaleLanguage_wrappedString = f_EntityPlayer_locale.getType().getDeclaredField("e");
                         } catch (NoSuchFieldException ex) { // we're pre-1.5
-                            localeLanguage_wrappedString = entityPlayer_locale.getType().getDeclaredField("d");
+                            f_LocaleLanguage_wrappedString = f_EntityPlayer_locale.getType().getDeclaredField("d");
                         }
                     }
                 }
+
+                success = true;
             } catch (ClassNotFoundException | NoSuchFieldException | NoSuchMethodException ex) {
                 ex.printStackTrace();
                 LOGGER.severe("Cannot initialize NMS components - per-player localization "
                         + "disabled");
+
+                success = false;
             }
-            PLAYER_SPIGOT = player_spigot;
-            PLAYER$SPIGOT_GETLOCALE = player$spigot_getLocale;
-            CRAFTPLAYER_GETHANDLE = craftPlayer_getHandle;
-            BUKKIT_GETONLINEPLAYERS = bukkit_getOnlinePlayers;
-            ENTITY_PLAYER_LOCALE = entityPlayer_locale;
-            LOCALE_LANGUAGE_WRAPPED_STRING = localeLanguage_wrappedString;
-            SUPPORT = CRAFTPLAYER_GETHANDLE != null;
+
+            if (success) {
+                M_PLAYER_SPIGOT = m_Player_spigot;
+                M_PLAYER$SPIGOT_GETLOCALE = m_Player$spigot_getLocale;
+                M_CRAFTPLAYER_GETHANDLE = m_CraftPlayer_getHandle;
+                M_BUKKIT_GETONLINEPLAYERS = m_Bukkit_getOnlinePlayers;
+                F_ENTITY_PLAYER_LOCALE = f_EntityPlayer_locale;
+                F_LOCALE_LANGUAGE_WRAPPED_STRING = f_LocaleLanguage_wrappedString;
+                SUPPORT = true;
+            } else {
+                M_PLAYER_SPIGOT = null;
+                M_PLAYER$SPIGOT_GETLOCALE = null;
+                M_CRAFTPLAYER_GETHANDLE = null;
+                M_BUKKIT_GETONLINEPLAYERS = null;
+                F_ENTITY_PLAYER_LOCALE = null;
+                F_LOCALE_LANGUAGE_WRAPPED_STRING = null;
+                SUPPORT = false;
+            }
         }
 
         private static boolean hasSupport() {
@@ -354,14 +373,14 @@ public class LocaleManager {
         }
 
         private static String getLocale(Player player) throws IllegalAccessException, InvocationTargetException {
-            if (PLAYER$SPIGOT_GETLOCALE != null) {
-                return (String) PLAYER$SPIGOT_GETLOCALE.invoke(PLAYER_SPIGOT.invoke(player));
+            if (M_PLAYER$SPIGOT_GETLOCALE != null) {
+                return (String) M_PLAYER$SPIGOT_GETLOCALE.invoke(M_PLAYER_SPIGOT.invoke(player));
             }
 
-            Object entityPlayer = CRAFTPLAYER_GETHANDLE.invoke(player);
-            Object locale = ENTITY_PLAYER_LOCALE.get(entityPlayer);
-            if (LOCALE_LANGUAGE_WRAPPED_STRING != null) {
-                return (String) LOCALE_LANGUAGE_WRAPPED_STRING.get(locale);
+            Object entityPlayer = M_CRAFTPLAYER_GETHANDLE.invoke(player);
+            Object locale = F_ENTITY_PLAYER_LOCALE.get(entityPlayer);
+            if (F_LOCALE_LANGUAGE_WRAPPED_STRING != null) {
+                return (String) F_LOCALE_LANGUAGE_WRAPPED_STRING.get(locale);
             } else {
                 return (String) locale;
             }

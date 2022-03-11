@@ -98,13 +98,7 @@ artifacts {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            /*setUniqueVersion(true)
-            configuration = configurations.deployerJars
-            if (project.hasProperty('mavenRepo')) {
-                repository(url: project.property('mavenRepo')) {
-                    authentication(userName: project.property('mavenUser'), password: project.property('mavenPass'))
-                }
-            }*/
+            from components.java
 
             pom {
                 name = 'Rosetta'

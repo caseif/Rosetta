@@ -181,18 +181,20 @@ public class LocaleManager {
 
     private void loadLocale(String name, InputStream is, boolean printStackTrace) {
         try {
+            String locale = name.toLowerCase();
+
             Properties temp = new Properties();
             temp.load(is);
             Properties config;
-            if (configs.containsKey(name)) {
-                config = configs.get(name);
+            if (configs.containsKey(locale)) {
+                config = configs.get(locale);
                 for (Map.Entry<Object, Object> e : temp.entrySet()) {
                     config.put(e.getKey(), e.getValue());
                 }
             } else {
                 config = temp;
             }
-            configs.put(name, config);
+            configs.put(locale, config);
         } catch (IOException ex) {
             if (printStackTrace) {
                 ex.printStackTrace();
@@ -233,7 +235,7 @@ public class LocaleManager {
      * @since 1.0
      */
     public void setDefaultLocale(String locale) {
-        this.defaultLocale = locale;
+        this.defaultLocale = locale.toLowerCase();
     }
 
     /**
@@ -250,7 +252,7 @@ public class LocaleManager {
     String getLocale(Player player) {
         if (NmsHelper.hasSupport()) {
             try {
-                return NmsHelper.getLocale(player);
+                return NmsHelper.getLocale(player).toLowerCase();
             } catch (IllegalAccessException | InvocationTargetException ex) {
                 ex.printStackTrace();
                 LOGGER.warning("Could not get locale of player " + player.getName());

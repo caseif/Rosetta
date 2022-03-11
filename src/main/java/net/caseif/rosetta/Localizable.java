@@ -183,7 +183,7 @@ public class Localizable {
      * @since 1.0
      */
     public String localizeIn(String locale, String... fallbacks) {
-        return localizeIn(locale, false, fallbacks);
+        return localizeIn(locale.toLowerCase(), false, fallbacks);
     }
 
     private String localizeIn(String locale, boolean recursive, String... fallbacks) {
@@ -204,10 +204,10 @@ public class Localizable {
                 return prefix + message + suffix;
             }
         }
-        if (!recursive) { // only inject alternatives the method is not called recursively and the first choice fails
+        if (!recursive) { // only inject alternatives if the method is not called recursively and the first choice fails
             List<String> fbList = Lists.newArrayList(fallbacks);
             for (int i = 0; i < fbList.size(); i++) {
-                String fb = fbList.get(i);
+                String fb = fbList.get(i).toLowerCase();
                 if (LocaleManager.ALTERNATIVES.containsKey(fb)) {
                     for (String alt : LocaleManager.ALTERNATIVES.get(fb)) {
                         if (!fbList.contains(alt)) { // check if the alternate dialect is already in the list
@@ -230,7 +230,7 @@ public class Localizable {
         if (fallbacks.length > 0) { // still some fallbacks to use
             String[] newFallbacks = new String[fallbacks.length - 1]; // reconstruct the fallback array
             System.arraycopy(fallbacks, 1, newFallbacks, 0, newFallbacks.length); // drop the first element
-            return localizeIn(fallbacks[0], true, newFallbacks); // try the next fallback
+            return localizeIn(fallbacks[0].toLowerCase(), true, newFallbacks); // try the next fallback
         } else if (!locale.equals(getParent().getDefaultLocale())) {
             return localizeIn(getParent().getDefaultLocale(), true); // try the default locale
         } else {

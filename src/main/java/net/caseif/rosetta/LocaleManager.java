@@ -105,6 +105,10 @@ public class LocaleManager {
         // Portugese dialects
         ALTERNATIVES.put("pt_BR", Arrays.asList("pt_PT"));
         ALTERNATIVES.put("pt_PT", Arrays.asList("pt_BR"));
+
+        // German dialects
+        ALTERNATIVES.put("de_AT", Arrays.asList("de_DE"));
+        ALTERNATIVES.put("de_CH", Arrays.asList("de_DE"));
     }
 
     /**
